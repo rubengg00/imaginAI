@@ -4,16 +4,19 @@ import { GoogleGenAI, GenerateImagesResponse } from '@google/genai';
 /**
  * Safely retrieves the API key from `process.env`.
  * This is necessary because the code runs in a browser where `process` is not
- * defined. A build tool is expected to replace `process.env.API_KEY` with the
- * actual key. This function prevents a crash if that doesn't happen.
+ * defined by default. A build tool (like the one Vercel uses for Angular projects)
+ * is expected to replace `process.env.NG_APP_API_KEY` with the actual key.
+ * Using the `NG_APP_` prefix is the standard way to expose variables to a
+ * frontend Angular application on Vercel.
  * @returns The API key string, or undefined if not found.
  */
 function getApiKey(): string | undefined {
   try {
-    // This will be replaced by a build tool. If not, it will throw ReferenceError.
-    return process.env.API_KEY;
+    // @ts-ignore
+    const apiKey = process.env.NG_APP_API_KEY;
+    return apiKey;
   } catch (e) {
-    console.warn('Could not read `process.env.API_KEY`. Make sure the build process replaces this value.');
+    console.warn('Could not read `process.env.NG_APP_API_KEY`. This is expected if not in a build environment.');
     return undefined;
   }
 }
@@ -30,7 +33,7 @@ export class GeminiService {
       if (apiKey) {
         this.ai = new GoogleGenAI({ apiKey: apiKey });
       } else {
-        console.error('Clave de API no encontrada. Asegúrate de que la variable de entorno API_KEY esté configurada en tu entorno de despliegue.');
+        console.error('Clave de API no encontrada. Asegúrate de que la variable de entorno NG_APP_API_KEY esté configurada en tu entorno de despliegue (Vercel).');
       }
     } catch (e) {
       console.error('Error al inicializar GoogleGenAI:', e);
