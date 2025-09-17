@@ -1,6 +1,23 @@
 import { Injectable } from '@angular/core';
 import { GoogleGenAI, GenerateImagesResponse } from '@google/genai';
 
+/**
+ * Safely retrieves the API key from `process.env`.
+ * This is necessary because the code runs in a browser where `process` is not
+ * defined. A build tool is expected to replace `process.env.API_KEY` with the
+ * actual key. This function prevents a crash if that doesn't happen.
+ * @returns The API key string, or undefined if not found.
+ */
+function getApiKey(): string | undefined {
+  try {
+    // This will be replaced by a build tool. If not, it will throw ReferenceError.
+    return process.env.API_KEY;
+  } catch (e) {
+    console.warn('Could not read `process.env.API_KEY`. Make sure the build process replaces this value.');
+    return undefined;
+  }
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -9,10 +26,11 @@ export class GeminiService {
 
   constructor() {
     try {
-      if (process.env.API_KEY) {
-        this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = getApiKey();
+      if (apiKey) {
+        this.ai = new GoogleGenAI({ apiKey: apiKey });
       } else {
-        console.error('Clave de API no encontrada. Asegúrate de que la variable de entorno API_KEY esté configurada.');
+        console.error('Clave de API no encontrada. Asegúrate de que la variable de entorno API_KEY esté configurada en tu entorno de despliegue.');
       }
     } catch (e) {
       console.error('Error al inicializar GoogleGenAI:', e);
